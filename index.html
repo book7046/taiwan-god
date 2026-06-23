@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台灣好神卡 - 線上占卜</title>
+    
+    <!-- PWA 相關設定 (上傳 GitHub 後可讓手機安裝) -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#7f1d1d">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <!-- 請在 assets/icons/ 內準備圖示 -->
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/icon-512x512.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/icon-192x192.png">
+    
+    <!-- 載入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 載入 Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { 
+            font-family: 'Noto Sans TC', sans-serif; 
+            background-color: #fdfaf6;
+            color: #4a4a4a;
+            /* 淺淺的東方紋理背景 */
+            background-image: url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23fcd34d" fill-opacity="0.1"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');
+        }
+
+        h1, h2, h3, .serif-text { font-family: 'Noto Serif TC', serif; }
+        .hidden { display: none !important; }
+
+        /* 漸入動畫 */
+        .fade-in { animation: fadeIn 0.6s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 敲擊震動特效 */
+        .shake-active { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            20% { transform: scale(0.95) rotate(-3deg); }
+            40% { transform: scale(0.95) rotate(3deg); }
+            60% { transform: scale(0.95) rotate(-3deg); }
+            80% { transform: scale(0.95) rotate(3deg); }
+        }
+
+        /* 發光特效 */
+        .glow-effect { box-shadow: 0 0 25px rgba(245, 158, 11, 0.7); animation: pulse-glow 2s infinite; }
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.5); }
+            50% { box-shadow: 0 0 35px rgba(245, 158, 11, 0.9); }
+            100% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.5); }
+        }
+
+        /* ----- 防裁切設定 ----- */
+        .main-wrapper {
+            overflow: hidden; /* 防止整個網頁出現水平卷軸 */
+            width: 100%;
+        }
+
+        /* 扇形抽牌區 */
+        .fan-container { 
+            position: relative; 
+            width: 100%; 
+            height: 380px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            /* 絕對不能設 overflow: hidden，這樣邊緣放大才不會被切掉 */
+            overflow: visible; 
+            margin-top: 2rem;
+        }
+        
+        .fan-card { 
+            position: absolute; 
+            /* 直式牌卡尺寸：比例 8:12 (2:3) */
+            width: 80px; 
+            height: 120px; 
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+            transform-origin: bottom center; 
+            cursor: pointer; 
+            border-radius: 6px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            border: 2px solid #fcd34d;
+            background-color: #7f1d1d;
+            background-size: cover;
+            background-position: center;
+        }
+        /* 手機版尺寸自適應縮小，維持 2:3 比例 */
+        @media (max-width: 640px) {
+            .fan-card { width: 64px; height: 96px; }
+            .fan-container { height: 320px; }
+        }
+        .fan-card:hover { 
+            transform: translateY(-25px) scale(1.15) !important; 
+            z-index: 200 !important; 
+            box-shadow: 0 12px 24px rgba(0,0,0,0.4);
+            border-color: #fff;
+        }
+        .fan-card.selected { 
+            opacity: 0; 
+            pointer-events: none; 
+            transform: translateY(-80px) scale(1.5) !important;
+        }
+
+        /* 翻牌特效 (直式 8:12 比例) */
+        .flip-box {
+            background-color: transparent;
+            width: 100%;
+            aspect-ratio: 2 / 3; /* 強制 2:3 比例 */
+            max-width: 260px; /* 最大寬度控制 */
+            margin: 0 auto;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        .flip-box-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.8s cubic-bezier(0.4, 0.2, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+        .flipped .flip-box-inner {
+            transform: rotateY(180deg);
+        }
+        .flip-box-front, .flip-box-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 0.5rem;
+            border: 3px solid #fcd34d;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #fff;
+        }
+        .flip-box-front {
+            background-color: #7f1d1d; 
+            background-size: cover;
+            background-position: center;
+        }
+        .flip-box-back {
+            transform: rotateY(180deg);
+            background-color: #fff;
+        }
+
+        /* 重點紅字標示 */
+        .highlight-red {
+            color: #b91c1c; /* Tailwind text-red-700 */
+            font-weight: bold;
+        }
+
+        /* 自訂捲軸 */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #fdfaf6; }
+        ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- 頂部導覽列 -->
+    <nav class="bg-red-900 shadow-lg px-4 py-3 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center gap-2 text-yellow-400 font-bold text-xl cursor-pointer serif-text" onclick="resetApp()">
+            <span class="text-2xl">🏮</span> 台灣好神卡
+        </div>
+        <div class="flex items-center gap-3">
+            <button id="installAppBtn" class="hidden text-white bg-red-700 hover:bg-red-600 px-3 py-1 rounded text-sm transition-colors border border-red-500">
+                📲 安裝
+            </button>
+            <button onclick="resetApp()" class="text-white hover:text-yellow-300 transition-colors text-sm font-medium">
+                重新開始
+            </button>
+        </div>
+    </nav>
+
+    <!-- 防止扇形水平超出導致畫面左右滑動 -->
+    <div class="main-wrapper flex-1 relative flex flex-col">
+        <main class="flex-1 p-4 pb-20 w-full max-w-5xl mx-auto">
+            
+            <!-- ==================== 1. 首頁與使用說明 ==================== -->
+            <div id="viewIntro" class="max-w-2xl mx-auto mt-6 fade-in">
+                <div class="bg-white rounded-2xl shadow-xl border border-red-100 overflow-hidden">
+                    <div class="bg-red-900 text-center py-8 px-4 relative overflow-hidden">
+                        <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#fcd34d 2px, transparent 2px); background-size: 20px 20px;"></div>
+                        <h1 class="text-4xl md:text-5xl font-bold text-yellow-400 mb-2 relative z-10 serif-text tracking-widest" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">台灣好神卡</h1>
+                        <p class="text-red-100 relative z-10 font-medium tracking-wide">尋找方向 • 傾聽神明指引</p>
+                    </div>
+                    
+                    <div class="p-6 md:p-8 space-y-8">
+                        <!-- 玩法介紹 -->
+                        <section>
+                            <h2 class="text-xl font-bold text-red-900 mb-3 border-l-4 border-yellow-500 pl-3 serif-text">📜 玩法介紹</h2>
+                            <ul class="list-disc list-inside text-gray-700 space-y-2 leading-relaxed">
+                                <li>可自行決定問題抽牌，張數不限。</li>
+                                <li>可以照牌陣抽牌，也可以直接單張解釋。</li>
+                            </ul>
+                        </section>
+
+                        <!-- 注意事項 -->
+                        <section>
+                            <h2 class="text-xl font-bold text-red-900 mb-3 border-l-4 border-yellow-500 pl-3 serif-text">⚠️ 注意事項</h2>
+                            <div class="bg-amber-50 rounded-xl p-5 border border-amber-200 space-y-3 text-sm md:text-base text-amber-900 leading-relaxed shadow-inner">
+                                <p><strong>1. 淨化充電：</strong>好神卡使用一段時間後可以曬曬太陽或到廟裡過爐，藉此充電來給予更多人生方向。</p>
+                                <p><strong>2. 培養默契：</strong>如果想讓好神卡更加了解你，給你更符合的建議，可以常常與好神卡聊天。</p>
+                                <p><strong>3. 狀態評估：</strong>能量狀態不太好時，請勿替自己與他人抽牌，避免磁場混亂影響結果。</p>
+                                <p><strong>4. 隨時可抽：</strong>好神卡不限時間地點都可以使用，請放心抽牌。</p>
+                                <div class="mt-4 pt-4 border-t border-amber-200">
+                                    <p class="font-bold mb-2">💡 提問小技巧：</p>
+                                    <p>建議詢問問題時不要用「有沒有、會不會」來詢問，而是以客觀角度詢問「未來發展」。</p>
+                                    <div class="bg-white p-3 rounded mt-2 text-sm shadow-sm border border-amber-100">
+                                        <span class="text-red-600 font-bold">❌ 錯誤範例：</span>心儀的對方有沒有喜歡我<br>
+                                        <span class="text-emerald-600 font-bold mt-1 inline-block">✅ 正確範例：</span>我和對方未來感情發展<br>
+                                        <span class="text-emerald-600 font-bold">✅ 正確範例：</span>我該如何才能與他交往
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <button onclick="goToAsk()" class="w-full py-4 bg-gradient-to-r from-red-800 to-red-600 text-yellow-300 rounded-xl font-bold text-lg hover:from-red-900 hover:to-red-700 transition-all shadow-lg transform hover:-translate-y-1 border border-red-500 serif-text tracking-wider">
+                            我了解了，開始占卜
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== 2. 輸入問題與牌陣選擇 ==================== -->
+            <div id="viewAsk" class="max-w-xl mx-auto mt-10 hidden fade-in">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-red-900 mb-3 serif-text">向好神卡提問</h2>
+                    <p class="text-gray-600">請像與朋友聊天般，輸入您的名字與想問的問題</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-md border border-red-100 mb-6">
+                    <div class="mb-5">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">您的稱呼</label>
+                        <input type="text" id="inputName" placeholder="例如：王小明" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-50">
+                    </div>
+                    
+                    <div class="mb-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">您想問的問題</label>
+                        <textarea id="inputQuestion" rows="4" placeholder="例如：我和對方未來感情發展..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-50 resize-none"></textarea>
+                    </div>
+                    
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 mt-4">
+                        <p class="text-xs text-blue-800 font-bold mb-1">💡 您可以這樣在心中默念：</p>
+                        <p class="text-sm text-blue-900 font-medium" id="previewDialogue">「好神卡，我是ＯＯＯ，我今天想問ＯＯＯ，請你能給我方向。」</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-md border border-red-100 mb-8">
+                    <h3 class="font-bold text-gray-800 mb-4 text-center">請選擇抽牌方式</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="spread-option border-2 border-red-200 rounded-xl p-4 text-center cursor-pointer hover:bg-red-50 transition-colors" data-spread="single" onclick="selectSpread('single', this)">
+                            <div class="text-3xl mb-2">🎴</div>
+                            <div class="font-bold text-red-900">單張解釋</div>
+                            <div class="text-xs text-gray-500 mt-1">抽取 1 張牌</div>
+                        </div>
+                        <div class="spread-option border-2 border-yellow-400 bg-yellow-50 rounded-xl p-4 text-center cursor-pointer transition-colors" data-spread="timeflow" onclick="selectSpread('timeflow', this)">
+                            <div class="text-3xl mb-2">⏳</div>
+                            <div class="font-bold text-red-900">時間之流</div>
+                            <div class="text-xs text-gray-500 mt-1">抽取 3 張牌 (過去/現在/未來)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="goToKnock()" class="w-full py-4 bg-gradient-to-r from-red-800 to-red-600 text-yellow-300 rounded-xl font-bold text-lg hover:from-red-900 hover:to-red-700 transition-all shadow-lg transform hover:-translate-y-1 border border-red-500 serif-text">
+                    確認問題，準備喚醒牌卡
+                </button>
+            </div>
+
+            <!-- ==================== 3. 敲擊喚醒儀式 ==================== -->
+            <div id="viewKnock" class="max-w-md mx-auto mt-16 text-center hidden fade-in">
+                <h2 class="text-3xl font-bold text-red-900 mb-4 serif-text">喚醒好神卡</h2>
+                <p class="text-gray-600 mb-12 px-4 leading-relaxed">
+                    當你的心中出現問題，或遇到問題卡關時，請靜下心來<br>
+                    <strong class="text-red-700">敲兩下牌卡</strong>，喚醒你的好神卡！
+                </p>
+
+                <div class="relative w-48 h-72 mx-auto perspective-1000 cursor-pointer" onclick="handleKnock()">
+                    <div id="knockDeck" class="absolute inset-0 bg-red-900 rounded-xl shadow-2xl border-4 border-yellow-400 flex flex-col items-center justify-center transition-transform overflow-hidden">
+                        <img src="assets/images/back.jpg" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="hidden flex-col items-center justify-center w-full h-full border-2 border-yellow-500/50 rounded m-2">
+                            <div class="text-yellow-400 text-center serif-text">
+                                <div class="text-4xl mb-2">🙏</div>
+                                <div class="text-xl font-bold tracking-widest" style="writing-mode: vertical-rl; text-orientation: upright;">台灣好神卡</div>
+                            </div>
+                        </div>
+                        <div class="absolute inset-0 rounded-xl border-4 border-yellow-400 animate-ping opacity-30 pointer-events-none" id="knockHint"></div>
+                    </div>
+                </div>
+
+                <div class="mt-12">
+                    <p class="text-xl font-bold text-red-800 bg-red-100 inline-block px-6 py-2 rounded-full shadow-inner border border-red-200 transition-colors" id="knockText">
+                        請點擊牌卡 (0 / 2)
+                    </p>
+                </div>
+            </div>
+
+            <!-- ==================== 4. 扇形抽牌區 ==================== -->
+            <div id="viewDraw" class="max-w-4xl mx-auto mt-10 hidden fade-in">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-red-900 mb-2 serif-text">隨意抽牌</h2>
+                    <p class="text-gray-600 font-medium" id="drawInstruction">請憑直覺抽出 X 張牌 (已選 0 張)</p>
+                </div>
+                
+                <div class="fan-container" id="cardDeckContainer">
+                    <!-- JS 動態生成 44 張牌 -->
+                </div>
+            </div>
+
+            <!-- ==================== 5. 占卜結果 ==================== -->
+            <div id="viewResult" class="max-w-5xl mx-auto mt-8 hidden fade-in pb-10">
+                
+                <div class="text-center mb-10 border-b border-gray-200 pb-8">
+                    <h2 class="text-3xl font-bold text-red-900 mb-6 serif-text tracking-wide">占卜結果</h2>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm inline-block max-w-2xl w-full border border-gray-100 text-left">
+                        <p class="text-gray-500 text-sm mb-1">提問人：<span id="resName" class="font-bold text-gray-800"></span></p>
+                        <p class="text-gray-500 text-sm mb-2">牌陣：<span id="resSpread" class="font-bold text-gray-800"></span></p>
+                        <div class="bg-red-50 p-4 rounded-lg mt-3">
+                            <p class="text-red-900 font-medium italic leading-relaxed">「<span id="resQuestion"></span>」</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-6 text-center text-red-600 text-sm animate-pulse font-bold">↓↓ 請點擊下方卡片翻開，並查看解說 ↓↓</div>
+                
+                <div id="resultSingle" class="hidden flex justify-center mb-12">
+                    <div class="w-full max-w-[260px]">
+                        <div class="text-center font-bold text-red-800 mb-3 bg-red-100 rounded-full py-1 border border-red-200 shadow-sm">神明指引</div>
+                        <div class="flip-box" onclick="flipResultCard(this, 0)">
+                            <div class="flip-box-inner">
+                                <div class="flip-box-front overflow-hidden">
+                                    <img src="assets/images/back.jpg" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="hidden flex-col items-center justify-center h-full p-4">
+                                        <div class="text-yellow-400 text-4xl mb-2">🙏</div>
+                                    </div>
+                                </div>
+                                <div class="flip-box-back" id="cardFront_0"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="resultTimeflow" class="hidden grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto mb-12 px-4">
+                    <div class="w-full max-w-[260px] mx-auto">
+                        <div class="text-center font-bold text-gray-600 mb-3 bg-gray-100 rounded-full py-1 border border-gray-200 shadow-sm">過去</div>
+                        <div class="flip-box" onclick="flipResultCard(this, 0)">
+                            <div class="flip-box-inner">
+                                <div class="flip-box-front overflow-hidden">
+                                    <img src="assets/images/back.jpg" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="hidden flex-col items-center justify-center h-full p-4"><div class="text-yellow-400 text-4xl">🙏</div></div>
+                                </div>
+                                <div class="flip-box-back" id="cardFrontTF_0"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full max-w-[260px] mx-auto mt-8 md:mt-0 md:-translate-y-6">
+                        <div class="text-center font-bold text-red-800 mb-3 bg-red-100 rounded-full py-1 shadow-md border border-red-200">現在</div>
+                        <div class="flip-box" onclick="flipResultCard(this, 1)">
+                            <div class="flip-box-inner glow-effect rounded-lg">
+                                <div class="flip-box-front overflow-hidden">
+                                    <img src="assets/images/back.jpg" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="hidden flex-col items-center justify-center h-full p-4"><div class="text-yellow-400 text-4xl">🙏</div></div>
+                                </div>
+                                <div class="flip-box-back" id="cardFrontTF_1"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full max-w-[260px] mx-auto mt-8 md:mt-0">
+                        <div class="text-center font-bold text-blue-800 mb-3 bg-blue-100 rounded-full py-1 border border-blue-200 shadow-sm">未來發展</div>
+                        <div class="flip-box" onclick="flipResultCard(this, 2)">
+                            <div class="flip-box-inner">
+                                <div class="flip-box-front overflow-hidden">
+                                    <img src="assets/images/back.jpg" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="hidden flex-col items-center justify-center h-full p-4"><div class="text-yellow-400 text-4xl">🙏</div></div>
+                                </div>
+                                <div class="flip-box-back" id="cardFrontTF_2"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="explanationArea" class="max-w-4xl mx-auto space-y-6 opacity-0 transition-opacity duration-1000 px-4 mt-12 hidden">
+                    <div class="flex items-center justify-center gap-4 mb-8 border-b-2 border-red-200 pb-4">
+                        <div class="w-12 h-1 bg-red-800 rounded"></div>
+                        <h3 class="text-2xl font-bold text-center text-red-900 serif-text tracking-widest">詳細解說</h3>
+                        <div class="w-12 h-1 bg-red-800 rounded"></div>
+                    </div>
+                    <div id="explanationContent" class="space-y-8"></div>
+                </div>
+                
+                <div id="restartArea" class="mt-16 text-center opacity-0 transition-opacity duration-1000 hidden">
+                    <button onclick="resetApp()" class="px-10 py-4 bg-gradient-to-r from-red-900 to-red-700 text-yellow-300 rounded-full font-bold text-lg hover:from-red-800 hover:to-red-600 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1">
+                        感謝指引，完成占卜
+                    </button>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!--                                牌卡資料庫                                   -->
+    <!-- ========================================================================= -->
+    <script>
+        // 🌟 請在此處修改每一張牌的內容與解說！ 🌟
+        // 注意事項：
+        // 1. 若要將某些字變成紅色，請使用 <r>紅色文字</r> 包住即可。
+        // 2. 換行請使用 \n。
+        
+        const GOD_CARDS_DATA = [
+            {
+                id: 1,
+                god: '九天玄女',
+                name: '1.過於緊張',
+                keyword: '焦慮 <r>沒自信</r> 衝動',
+                poem: '巍巍獨步向雲間\n玉殿千官第一班\n富貴榮華天付汝\n福如東海壽如山',
+                desc: '對於你關心的事情，你不必<r>過於擔憂</r>和緊張，因你有著與上天一樣高、和大地一樣寬廣的幸運，現在就連上天也都是站在你這邊的！\n\n目前的你，可能會因為關心的事情，而顯得憂慮、慌張…等。但切記，在這樣的心情底下，萬萬不可因為一時的<r>衝動</r>或焦急，而去做出可能會讓自己後悔的事情。此時此刻的你，應該試著冷靜下來，並且沉著一點去思考。\n\n而這是一張非常幸運的牌卡，意味著：天時、地利、人和，各項要素都已具備，但唯獨仍欠缺的，只有你那尚不安定的內心。\n\n所以試圖讓自己放輕鬆吧！這樣你會更容易看到我所說的那個機會的。\n\n至於你所關心的事情，不久後將會傳來好的音訊，因此不必擔憂與操煩！'
+            },
+            {
+                id: 2,
+                god: '九天玄女',
+                name: '2.智慧及策略',
+                keyword: '<r>冷靜</r> 謀略 主導',
+                poem: '朔風凜凜正窮冬\n多羨門庭喜氣濃\n更入新春人事後\n衷言方得信先容',
+                desc: '現在的你，必須要比尋常人有著更多的智謀與策略，因為你所問的這件事情，現在正處於一個<r>情勢不好</r>的時期，所以你必須抱有更多的<r>冷靜與理智</r>，才能夠從容地處理當前的局勢。\n\n「冬天到了，春天還會遠嗎？」\n\n這句話正是我要告訴你的，現在的一切景物雖然看似很不理想，但你相信嗎？春天就在不遠處了！\n\n因此，現在的你應該要低調一些，並且養精蓄銳，韜光養晦，方能逢凶化吉，將不好的事情轉變成好事；你要在這段期間裡默默地準備、規劃，或者籌謀有關於你所問的這件事情，靜待時機成熟再開始行動，才能夠有所成功。\n\n而時機則是時值「春天」，或與「春」有關的時間。'
+            },
+            {
+                id: 3,
+                god: '九天玄女',
+                name: '3.適當放鬆',
+                keyword: '重置 調整 <r>換位思考</r>',
+                poem: '內藏無價寶和珍\n得玉何須外界尋\n不如等待高人識\n寬心猶且更寬心',
+                desc: '你有多久的時間，沒讓自己<r>好好地放鬆</r>一下了呢？\n\n長時間為了這件事情煩惱的你，是該好好地休息一下了！過度地擔憂和思慮，並不會讓你有更多好的辦法。而你現在所問的這件事，首先需要自己重新調整自己的能量，而不是一直做無謂的擔心。\n\n放寬心點，不要因為緊張而過度放大許多細節，有時候這麼做反而多此一舉、扯自己後腿。\n\n你需要重新檢視和調整，提升自己的生理與心理素質，換個角度、換個想法，或許會發現很多事情變得很不一樣。\n\n當你調整到一個自己最舒適的身心狀態時，又何必擔心別人不懂欣賞你？或是還在擔心這件事情不會成功呢？'
+            },
+            {
+                id: 4,
+                god: '中壇元帥',
+                name: '1.讓步及妥協',
+                keyword: '<r>溝通</r> 對談 表達',
+                poem: '婆心救苦下凡塵\n業畜偷逃亦夙因\n自此收回山上去\n萬民同慶太平春',
+                desc: '這件事情，其實它需要靜下心來好好地被<r>溝通與表達</r>。可能現在的你心情情緒起伏比較大，又或是因為這件事情隱藏了太多無法掌握的未知數，導致你出現擔心與害怕的情緒。\n\n但千萬不要因為遇到困難就退縮，也不要因為遇到問題就逃避，你需要冷靜下來，好好地表達自己的想法，嘗試做有效的溝通，彼此互相了解，如此才會伴隨著成功。\n\n當我們遇到挑戰與困難時，都必須得讓自己從容不迫地面對，任何難關來到你面前一定有它出現的原因，所以與其手足無措，更該冷靜想辦法去面對。\n\n有時候很多事情都會牽連著因果，你種了什麼因，便會得到什麼果。'
+            },
+            {
+                id: 5,
+                god: '中壇元帥',
+                name: '2.失去平衡',
+                keyword: '中立 適度 耐心',
+                poem: '防胡枉費用心機\n擾動民生困苦時\n天道不容人慾望\n江山無恙國垂危',
+                desc: '你一定要保持中立平衡的態度，且要記住凡事一旦<r>做得超過</r>，好事也會變壞事。\n\n而你今天所問的問題，其實它現下並沒有一個明確的執行方法及確切的狀況，目前還是處於飄移不定的，因為一切的事物，都是隨著你的心境去變化的。\n\n如果這件事情已經正在計畫或規劃了，你要記得凡事都是一步一步慢慢來，保持耐心地去執行去走，那成功是必然會到來的。\n\n倘若你在面對這件事情時，是用很<r>心急</r>想看見成果的態度去處理，衝動無章地執行，那失敗必定也會伴隨在你左右。'
+            },
+            // 佔位資料 (6 ~ 43)
+            { id: 6, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 7, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 8, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 9, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 10, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 11, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 12, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 13, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 14, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 15, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 16, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 17, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 18, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 19, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 20, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 21, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 22, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 23, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 24, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 25, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 26, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 27, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 28, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 29, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 30, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 31, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 32, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 33, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 34, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 35, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 36, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 37, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 38, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 39, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 40, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 41, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 42, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            { id: 43, god: '神明名稱', name: '標題', keyword: '關鍵字', poem: '詩籤內容\n第二句\n第三句\n第四句', desc: '白話文解析內容。' },
+            
+            // 從電子書擷取出來的最後一張牌卡示範
+            { 
+                id: 44, 
+                god: '台灣好神卡', 
+                name: '3.向神祈求', 
+                keyword: '祈禱 許願 <r>相信</r>', 
+                poem: '房中生瑞草\n孕婦喜臨盆\n合眷皆來慶\n麒麟是子孫', 
+                desc: '你想祈求和詢問的那個「未來」，並不是不會到來，而是如今並不是對的時機，古人常說「積善之家，必有餘慶」，如果希望這件事能成功，或想知道該怎麼做，不如就<r>向上天祈求</r>吧。\n\n祈求許願後真誠地去相信，並去執行，則你期盼的未來，終會來臨，因此<r>不需要在眼下著急</r>。\n\n也許會因為還看不到未來的結果而擔憂，但請相信我，它快到來了，只是你還欠缺一份信念。' 
+            }
+        ];
+    </script>
+
+    <!-- ========================================================================= -->
+    <!--                                應用程式邏輯                                 -->
+    <!-- ========================================================================= -->
+    <script>
+        let cardsData = [];
+        let userName = "";
+        let userQuestion = "";
+        let selectedSpreadType = "timeflow"; 
+        let cardsToDrawCount = 3;
+        let drawnCards = [];
+        let knockCount = 0;
+        let flippedCount = 0;
+        const TOTAL_CARDS = 44;
+
+        // 產生缺圖時的防呆提示圖片 (比例 8:12)
+        function getFallbackImage(text) {
+            return `https://placehold.co/400x600/fef08a/991b1b?text=${encodeURIComponent(text)}`;
+        }
+
+        // 確保陣列有 44 張，並為每張補上對應的本地圖檔路徑設定
+        function getFullCardsData() {
+            const data = [...GOD_CARDS_DATA];
+            
+            // 防呆處理，補足缺少的卡片資料
+            for (let i = data.length + 1; i <= TOTAL_CARDS; i++) {
+                data.push({
+                    id: i,
+                    god: '台灣好神卡',
+                    name: `第 ${i} 籤`,
+                    keyword: '誠心 祈求 <r>順其自然</r>',
+                    poem: '天理昭昭不可欺\n順其自然莫強求\n誠心祈禱必有應\n靜待時機好運來',
+                    desc: `這是第 ${i} 張好神卡的預設解說。\n\n神明提醒您，在面對目前的狀況時，保持平靜的心態是非常重要的。<r>順其自然</r>，盡人事聽天命，一切都會往好的方向發展。`
+                });
+            }
+            return data.map(card => ({
+                ...card,
+                frontImage: `assets/images/front_${card.id}.jpg`,
+                backImage: `assets/images/back.jpg`
+            }));
+        }
+
+        // 將 <r>標籤</r> 轉換為 <span class="highlight-red">標籤</span>
+        function parseRedText(text) {
+            if (!text) return "";
+            return text.replace(/<r>(.*?)<\/r>/g, '<span class="highlight-red">$1</span>');
+        }
+
+        function initApp() {
+            cardsData = getFullCardsData();
+            document.getElementById('inputName').addEventListener('input', updatePreview);
+            document.getElementById('inputQuestion').addEventListener('input', updatePreview);
+        }
+
+        function updatePreview() {
+            const name = document.getElementById('inputName').value.trim() || 'ＯＯＯ';
+            const q = document.getElementById('inputQuestion').value.trim() || 'ＯＯＯ';
+            document.getElementById('previewDialogue').textContent = `「好神卡，我是${name}，我今天想問${q}，請你能給我方向。」`;
+        }
+
+        function hideAllViews() {
+            ['viewIntro', 'viewAsk', 'viewKnock', 'viewDraw', 'viewResult', 'explanationArea', 'restartArea'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            window.scrollTo(0, 0);
+        }
+
+        function resetApp() {
+            userName = "";
+            userQuestion = "";
+            drawnCards = [];
+            knockCount = 0;
+            flippedCount = 0;
+            
+            document.getElementById('inputName').value = "";
+            document.getElementById('inputQuestion').value = "";
+            updatePreview();
+            
+            selectSpread('timeflow', document.querySelector('[data-spread="timeflow"]'));
+            
+            document.getElementById('knockText').textContent = "請點擊牌卡 (0 / 2)";
+            document.getElementById('knockText').classList.remove('bg-yellow-100', 'text-yellow-800');
+            document.getElementById('knockHint').classList.remove('hidden');
+            document.getElementById('knockDeck').classList.remove('glow-effect');
+            
+            document.getElementById('explanationArea').style.opacity = '0';
+            document.getElementById('restartArea').style.opacity = '0';
+            
+            document.querySelectorAll('.flip-box').forEach(box => box.classList.remove('flipped'));
+
+            hideAllViews();
+            document.getElementById('viewIntro').classList.remove('hidden');
+        }
+
+        function goToAsk() {
+            hideAllViews();
+            document.getElementById('viewAsk').classList.remove('hidden');
+        }
+
+        function selectSpread(type, element) {
+            selectedSpreadType = type;
+            cardsToDrawCount = type === 'single' ? 1 : 3;
+            
+            document.querySelectorAll('.spread-option').forEach(el => {
+                el.classList.remove('border-yellow-400', 'bg-yellow-50');
+                el.classList.add('border-red-200');
+            });
+            element.classList.remove('border-red-200');
+            element.classList.add('border-yellow-400', 'bg-yellow-50');
+        }
+
+        function goToKnock() {
+            userName = document.getElementById('inputName').value.trim() || '信士/信女';
+            userQuestion = document.getElementById('inputQuestion').value.trim();
+            
+            if (!userQuestion) {
+                alert('請在心中默念或輸入您的問題，好神卡才能給予明確指引喔！');
+                document.getElementById('inputQuestion').focus();
+                return;
+            }
+
+            hideAllViews();
+            document.getElementById('viewKnock').classList.remove('hidden');
+        }
+
+        function handleKnock() {
+            const deck = document.getElementById('knockDeck');
+            if (knockCount >= 2) return;
+
+            deck.classList.remove('shake-active');
+            void deck.offsetWidth; // reflow
+            deck.classList.add('shake-active');
+            
+            knockCount++;
+            document.getElementById('knockText').textContent = `請點擊牌卡 (${knockCount} / 2)`;
+
+            if (knockCount === 2) {
+                document.getElementById('knockHint').classList.add('hidden');
+                document.getElementById('knockText').textContent = "好神卡已喚醒！準備洗牌...";
+                document.getElementById('knockText').classList.add('bg-yellow-100', 'text-yellow-800');
+                deck.classList.add('glow-effect');
+                
+                setTimeout(goToDraw, 1500);
+            }
+        }
+
+        function goToDraw() {
+            hideAllViews();
+            updateDrawInstruction();
+            document.getElementById('viewDraw').classList.remove('hidden');
+            
+            // 洗牌
+            cardsData.sort(() => Math.random() - 0.5);
+            createFanSpread();
+        }
+
+        function updateDrawInstruction() {
+            document.getElementById('drawInstruction').textContent = `請憑直覺抽出 ${cardsToDrawCount} 張牌 (已選 ${drawnCards.length} 張)`;
+        }
+
+        function createFanSpread() {
+            const container = document.getElementById('cardDeckContainer');
+            container.innerHTML = '';
+            
+            const containerWidth = container.offsetWidth || window.innerWidth;
+            const isMobile = containerWidth < 640;
+            
+            // 扇形半徑計算，防止切邊
+            const radius = isMobile ? (containerWidth / 2) - 20 : 320; 
+            const totalAngle = isMobile ? 100 : 130;
+            const angleStep = totalAngle / (TOTAL_CARDS - 1);
+            const startAngle = -totalAngle / 2;
+            const yOffset = isMobile ? 80 : 160; 
+            
+            for (let i = 0; i < TOTAL_CARDS; i++) {
+                const cardEl = document.createElement('div');
+                const actualCard = cardsData[i];
+
+                cardEl.className = 'fan-card';
+                cardEl.style.backgroundImage = `url('assets/images/back.jpg')`;
+                
+                const angle = startAngle + (i * angleStep);
+                const radian = angle * Math.PI / 180;
+                
+                const x = radius * Math.sin(radian);
+                const y = -Math.cos(radian) * radius * (isMobile ? 0.3 : 0.35) + yOffset;
+                
+                cardEl.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg)`;
+                cardEl.style.zIndex = Math.floor(100 - Math.abs(i - TOTAL_CARDS / 2));
+                
+                cardEl.onclick = function() {
+                    if (this.classList.contains('selected') || drawnCards.length >= cardsToDrawCount) return;
+                    
+                    this.classList.add('selected'); 
+                    drawnCards.push(actualCard);
+                    updateDrawInstruction();
+                    
+                    if (drawnCards.length === cardsToDrawCount) {
+                        setTimeout(showResult, 600);
+                    }
+                };
+                
+                container.appendChild(cardEl);
+            }
+        }
+
+        function showResult() {
+            hideAllViews();
+            flippedCount = 0;
+            
+            document.getElementById('resName').textContent = userName;
+            document.getElementById('resSpread').textContent = selectedSpreadType === 'single' ? '單張解釋' : '時間之流 (過去/現在/未來)';
+            document.getElementById('resQuestion').textContent = userQuestion;
+
+            const resultSingle = document.getElementById('resultSingle');
+            const resultTimeflow = document.getElementById('resultTimeflow');
+
+            if (selectedSpreadType === 'single') {
+                resultSingle.classList.remove('hidden');
+                resultTimeflow.classList.add('hidden');
+                
+                const frontContainer = document.getElementById('cardFront_0');
+                const fallbackUrl = getFallbackImage(`找不到\\nfront_${drawnCards[0].id}.jpg`);
+                frontContainer.innerHTML = `<img src="${drawnCards[0].frontImage}" class="w-full h-full object-cover rounded" onerror="this.onerror=null; this.src='${fallbackUrl}'">`;
+            } else {
+                resultSingle.classList.add('hidden');
+                resultTimeflow.classList.remove('hidden');
+                
+                for(let i=0; i<3; i++) {
+                    const frontContainer = document.getElementById(`cardFrontTF_${i}`);
+                    const fallbackUrl = getFallbackImage(`找不到\\nfront_${drawnCards[i].id}.jpg`);
+                    frontContainer.innerHTML = `<img src="${drawnCards[i].frontImage}" class="w-full h-full object-cover rounded" onerror="this.onerror=null; this.src='${fallbackUrl}'">`;
+                }
+            }
+
+            document.getElementById('viewResult').classList.remove('hidden');
+        }
+
+        // 翻開卡片時觸發
+        function flipResultCard(element, index) {
+            if (!element.classList.contains('flipped')) {
+                element.classList.add('flipped');
+                flippedCount++;
+                
+                // 當所有卡片都翻開時，動態渲染並顯示下方的「解說區」
+                if (flippedCount === cardsToDrawCount) {
+                    renderExplanations();
+                    setTimeout(() => {
+                        document.getElementById('explanationArea').classList.remove('hidden');
+                        document.getElementById('restartArea').classList.remove('hidden');
+                        // 讓淡入動畫起作用
+                        requestAnimationFrame(() => {
+                            document.getElementById('explanationArea').style.opacity = '1';
+                            document.getElementById('restartArea').style.opacity = '1';
+                        });
+                    }, 800);
+                }
+            }
+        }
+
+        // 產生解說區的 HTML
+        function renderExplanations() {
+            const container = document.getElementById('explanationContent');
+            container.innerHTML = '';
+            
+            const positionNames = selectedSpreadType === 'single' ? ['神明指引'] : ['過去', '現在', '未來發展'];
+
+            drawnCards.forEach((card, index) => {
+                // 將資料中的 <r> 標籤轉換為帶有紅色樣式的 <span>
+                const parsedKeyword = parseRedText(card.keyword);
+                const parsedDesc = parseRedText(card.desc);
+
+                const html = `
+                    <div class="bg-white rounded-2xl shadow-md border border-red-100 overflow-hidden">
+                        <div class="bg-red-50 px-5 py-3 border-b border-red-100 flex items-center gap-3">
+                            <span class="bg-red-800 text-yellow-300 px-3 py-1 rounded-full text-xs font-bold tracking-widest">${positionNames[index]}</span>
+                            <span class="text-sm font-bold text-red-900">${card.god}</span>
+                        </div>
+                        <div class="p-5 md:p-8 flex flex-col md:flex-row gap-6 md:gap-10">
+                            
+                            <!-- 左側：標題與詩句 -->
+                            <div class="md:w-1/3 shrink-0 flex flex-col items-center md:items-start text-center md:text-left border-b md:border-b-0 md:border-r border-gray-100 pb-6 md:pb-0 md:pr-6">
+                                <h4 class="text-2xl font-bold text-gray-800 mb-2 serif-text">${card.name}</h4>
+                                <p class="text-sm text-gray-600 font-bold bg-red-50 px-3 py-1 rounded-full mb-5 inline-block border border-red-100">${parsedKeyword}</p>
+                                <div class="bg-gray-50 p-4 rounded-xl w-full border border-gray-100">
+                                    <p class="text-gray-700 font-medium leading-loose tracking-widest whitespace-pre-line serif-text text-lg">${card.poem}</p>
+                                </div>
+                            </div>
+
+                            <!-- 右側：白話文解析 -->
+                            <div class="md:w-2/3">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <div class="w-1 h-5 bg-yellow-400 rounded"></div>
+                                    <h5 class="text-lg font-bold text-red-900 serif-text">白話文解析</h5>
+                                </div>
+                                <p class="text-gray-700 leading-relaxed whitespace-pre-line text-justify">${parsedDesc}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        // PWA 安裝邏輯
+        function setupPWAInstall() {
+            const installBtn = document.getElementById('installAppBtn');
+            let deferredPrompt;
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault(); 
+                deferredPrompt = e;
+                if(installBtn) {
+                    installBtn.classList.remove('hidden');
+                    installBtn.addEventListener('click', () => {
+                        deferredPrompt.prompt();
+                        deferredPrompt.userChoice.then((choiceResult) => {
+                            if (choiceResult.outcome === 'accepted') { installBtn.classList.add('hidden'); }
+                            deferredPrompt = null;
+                        });
+                    });
+                }
+            });
+        }
+
+        // 等待外部腳本載入後再初始化
+        window.addEventListener('load', () => {
+            initApp();
+            setupPWAInstall();
+        });
+
+        if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.protocol === 'http:')) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js').catch(err => {
+                    console.log('Service Worker 略過提示:', err);
+                });
+            });
+        }
+
+    </script>
+</body>
+</html>
