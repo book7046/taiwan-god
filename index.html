@@ -781,6 +781,19 @@
                     <div id="explanationContent" class="space-y-8"></div>
                 </div>
                 
+                <!-- 🌟 新增：輔助牌顯示區與控制按鈕 🌟 -->
+                <div id="auxiliaryArea" class="max-w-4xl mx-auto mt-12 px-4 hidden">
+                    <div id="auxiliaryCardsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                        <!-- 動態插入輔助牌的翻牌 UI -->
+                    </div>
+                    
+                    <div class="text-center">
+                        <button id="drawAuxiliaryBtn" onclick="drawAuxiliaryCard()" class="px-8 py-3 bg-white text-red-700 border-2 border-red-700 rounded-full font-bold text-lg hover:bg-red-50 transition-all shadow-md transform hover:-translate-y-1 mb-4 hidden">
+                            再抽一張輔助牌 (<span id="auxCount">0</span>/2)
+                        </button>
+                    </div>
+                </div>
+
                 <div id="restartArea" class="mt-16 text-center opacity-0 transition-opacity duration-1000 hidden">
                     <button onclick="resetApp()" class="px-10 py-4 bg-gradient-to-r from-red-900 to-red-700 text-yellow-300 rounded-full font-bold text-lg hover:from-red-800 hover:to-red-600 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1">
                         感謝指引，完成占卜
@@ -801,6 +814,11 @@
         let drawnCards = [];
         let knockCount = 0;
         let flippedCount = 0;
+        
+        // 🌟 新增：輔助牌相關狀態 🌟
+        let auxiliaryCards = [];
+        const MAX_AUXILIARY = 2;
+        
         const TOTAL_CARDS = 44;
 
         // 產生缺圖時的防呆提示圖片 (比例 8:12)
@@ -862,6 +880,13 @@
             drawnCards = [];
             knockCount = 0;
             flippedCount = 0;
+            
+            // 🌟 重置輔助牌狀態 🌟
+            auxiliaryCards = [];
+            document.getElementById('auxiliaryCardsContainer').innerHTML = '';
+            document.getElementById('auxCount').textContent = '0';
+            document.getElementById('drawAuxiliaryBtn').classList.add('hidden');
+            document.getElementById('auxiliaryArea').classList.add('hidden');
             
             document.getElementById('inputName').value = "";
             document.getElementById('inputQuestion').value = "";
@@ -1040,6 +1065,11 @@
                     setTimeout(() => {
                         document.getElementById('explanationArea').classList.remove('hidden');
                         document.getElementById('restartArea').classList.remove('hidden');
+                        
+                        // 🌟 顯示輔助牌區域與按鈕 🌟
+                        document.getElementById('auxiliaryArea').classList.remove('hidden');
+                        document.getElementById('drawAuxiliaryBtn').classList.remove('hidden');
+
                         requestAnimationFrame(() => {
                             document.getElementById('explanationArea').style.opacity = '1';
                             document.getElementById('restartArea').style.opacity = '1';
@@ -1047,6 +1077,129 @@
                     }, 800);
                 }
             }
+        }
+
+        // 🌟 新增：抽取輔助牌邏輯 🌟
+        function drawAuxiliaryCard() {
+            if (auxiliaryCards.length >= MAX_AUXILIARY) return;
+
+            // 1. 準備剩下的牌庫 (過濾掉已抽到的主牌和輔助牌)
+            const drawnIds = [...drawnCards, ...auxiliaryCards].map(c => c.id);
+            let remainingDeck = cardsData.filter(card => !drawnIds.includes(card.id));
+
+            // 2. 進行專業洗牌 (Fisher-Yates Shuffle)
+            for (let i = remainingDeck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [remainingDeck[i], remainingDeck[j]] = [remainingDeck[j], remainingDeck[i]];
+            }
+
+            // 3. 抽出一張牌
+            const newAuxCard = remainingDeck[0];
+            auxiliaryCards.push(newAuxCard);
+
+            // 4. 更新 UI 與計數
+            document.getElementById('auxCount').textContent = auxiliaryCards.length;
+            
+            if (auxiliaryCards.length >= MAX_AUXILIARY) {
+                document.getElementById('drawAuxiliaryBtn').classList.add('hidden');
+            }
+
+            // 5. 渲染新的輔助牌 UI
+            renderAuxiliaryCardUI(newAuxCard, auxiliaryCards.length);
+        }
+
+        // 🌟 新增：渲染單張輔助牌 UI (包含翻牌特效與解說) 🌟
+        function renderAuxiliaryCardUI(card, index) {
+            const container = document.getElementById('auxiliaryCardsContainer');
+            const auxId = `auxCard_${index}`;
+            const positionName = index === 1 ? '輔助牌一' : '輔助牌二';
+
+            // 產生翻牌 UI
+            const flipBoxHTML = `
+                <div class="w-full max-w-[260px] mx-auto fade-in">
+                    <div class="text-center font-bold text-teal-800 mb-3 bg-teal-100 rounded-full py-1 border border-teal-200 shadow-sm">
+                        ${positionName}
+                    </div>
+                    <div class="flip-box" onclick="flipAuxiliaryCard(this, ${card.id})">
+                        <div class="flip-box-inner glow-effect rounded-lg">
+                            <div class="flip-box-front overflow-hidden">
+                                <img src="assets/images/back.jpg" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="hidden flex-col items-center justify-center h-full p-4"><div class="text-yellow-400 text-4xl">🙏</div></div>
+                            </div>
+                            <div class="flip-box-back" id="front_${auxId}">
+                                <img src="${card.frontImage}" class="w-full h-full object-cover rounded" onerror="this.onerror=null; this.src='${getFallbackImage(`找不到\\nfront_${card.id}.jpg`)}'">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-3 text-teal-600 text-sm animate-pulse font-bold">點擊翻開解說</div>
+                </div>
+            `;
+            
+            container.insertAdjacentHTML('beforeend', flipBoxHTML);
+            
+            // 捲動到新抽的牌
+            container.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // 🌟 新增：翻開輔助牌並動態加入解說 🌟
+        function flipAuxiliaryCard(element, cardId) {
+            if (element.classList.contains('flipped')) return;
+            
+            element.classList.add('flipped');
+            
+            // 隱藏「點擊翻開解說」提示
+            if(element.nextElementSibling) {
+                 element.nextElementSibling.style.display = 'none';
+            }
+
+            const card = cardsData.find(c => c.id === cardId);
+            const index = auxiliaryCards.findIndex(c => c.id === cardId) + 1;
+            const positionName = index === 1 ? '輔助牌一' : '輔助牌二';
+            
+            const parsedKeyword = parseRedText(card.keyword);
+            const parsedDesc = parseRedText(card.desc);
+            const parsedOracle = card.oracle ? parseRedText(card.oracle) : "";
+
+            const html = `
+                <div class="bg-white rounded-2xl shadow-md border border-teal-100 overflow-hidden fade-in mt-6">
+                    <div class="bg-teal-50 px-5 py-3 border-b border-teal-100 flex items-center gap-3">
+                        <span class="bg-teal-700 text-white px-3 py-1 rounded-full text-xs font-bold tracking-widest">${positionName}</span>
+                        <span class="text-sm font-bold text-teal-900">${card.god}</span>
+                    </div>
+                    <div class="p-5 md:p-8 flex flex-col md:flex-row gap-6 md:gap-10">
+                        
+                        <div class="md:w-1/3 shrink-0 flex flex-col items-center md:items-start text-center md:text-left border-b md:border-b-0 md:border-r border-gray-100 pb-6 md:pb-0 md:pr-6">
+                            <h4 class="text-2xl font-bold text-gray-800 mb-2 serif-text">${card.name}</h4>
+                            <p class="text-sm text-red-600 font-bold bg-red-100 px-3 py-1 rounded-full mb-5 inline-block border border-red-100">${parsedKeyword}</p>
+                            <div class="bg-gray-50 p-4 rounded-xl w-full border border-gray-100">
+                                <p class="text-red-700 font-medium leading-loose tracking-widest whitespace-pre-line serif-text text-lg">${card.poem}</p>
+                            </div>
+                        </div>
+
+                        <div class="md:w-2/3">
+                            <div class="flex items-center gap-2 mb-4">
+                                <div class="w-1 h-5 bg-teal-500 rounded"></div>
+                                <h5 class="text-lg font-bold text-teal-900 serif-text">補充解析</h5>
+                            </div>
+                            <p class="text-gray-700 leading-relaxed whitespace-pre-line text-justify mb-6">${parsedDesc}</p>
+                            
+                            ${card.oracle ? `
+                            <div class="mt-4 p-5 bg-green-50 rounded-xl border border-green-200 shadow-sm">
+                                <h5 class="text-green-800 font-bold mb-3 serif-text flex items-center gap-2 text-lg">
+                                    <span>🌿</span> 神明諭示
+                                </h5>
+                                <p class="text-green-700 leading-relaxed text-justify">${parsedOracle}</p>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                document.getElementById('explanationContent').insertAdjacentHTML('beforeend', html);
+                document.getElementById('explanationContent').lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 600);
         }
 
         function renderExplanations() {
