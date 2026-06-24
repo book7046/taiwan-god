@@ -9,14 +9,17 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     
+    <!-- 載入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- 載入 Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
 
+    <!-- ✅ 牌卡資料庫 ✅ -->
     <script>
-        // 🌟 44 張牌卡完整資料庫，已為每張牌卡加上 oracle 欄位 🌟
+        // 🌟 可以在此處修改每一張牌的內容與解說！ 🌟
         const GOD_CARDS_DATA = [
             {
                 id: 1,
@@ -809,7 +812,7 @@
         function getFullCardsData() {
             const data = [...window.GOD_CARDS_DATA];
             
-            // 防呆處理，補足缺少的卡片資料 (以防資料異常短缺)
+            // 防呆處理，補足缺少的卡片資料
             for (let i = data.length + 1; i <= TOTAL_CARDS; i++) {
                 data.push({
                     id: i,
@@ -818,7 +821,7 @@
                     keyword: '誠心 祈求 <r>順其自然</r>',
                     poem: '天理昭昭不可欺\n順其自然莫強求\n誠心祈禱必有應\n靜待時機好運來',
                     desc: `這是第 ${i} 張好神卡的預設解說。\n\n神明提醒您，在面對目前的狀況時，保持平靜的心態是非常重要的。<r>順其自然</r>，盡人事聽天命，一切都會往好的方向發展。`,
-                    oracle: '' // 確保補足的資料也有 oracle 欄位
+                    oracle: '' // 預設為空
                 });
             }
             return data.map(card => ({
@@ -937,8 +940,12 @@
             updateDrawInstruction();
             document.getElementById('viewDraw').classList.remove('hidden');
             
-            // 洗牌
-            cardsData.sort(() => Math.random() - 0.5);
+            // 🌟 專業洗牌演算法 (Fisher-Yates Shuffle)，確保絕對隨機且無偏差 🌟
+            for (let i = cardsData.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cardsData[i], cardsData[j]] = [cardsData[j], cardsData[i]];
+            }
+
             createFanSpread();
         }
 
@@ -1051,7 +1058,7 @@
             drawnCards.forEach((card, index) => {
                 const parsedKeyword = parseRedText(card.keyword);
                 const parsedDesc = parseRedText(card.desc);
-                // 處理神諭文字，並支援紅字 <r> 標籤
+                // 處理神諭文字 (若神諭中也需要紅字支援)
                 const parsedOracle = card.oracle ? parseRedText(card.oracle) : "";
 
                 const html = `
@@ -1066,7 +1073,6 @@
                                 <h4 class="text-2xl font-bold text-gray-800 mb-2 serif-text">${card.name}</h4>
                                 <p class="text-sm text-red-600 font-bold bg-red-100 px-3 py-1 rounded-full mb-5 inline-block border border-red-100">${parsedKeyword}</p>
                                 <div class="bg-gray-50 p-4 rounded-xl w-full border border-gray-100">
-                                    <!-- 🌟 關鍵修改：新增 text-red-700 讓詩句呈現紅色 🌟 -->
                                     <p class="text-red-700 font-medium leading-loose tracking-widest whitespace-pre-line serif-text text-lg">${card.poem}</p>
                                 </div>
                             </div>
@@ -1077,14 +1083,14 @@
                                     <h5 class="text-lg font-bold text-red-900 serif-text">白話文解析</h5>
                                 </div>
                                 <p class="text-gray-700 leading-relaxed whitespace-pre-line text-justify mb-6">${parsedDesc}</p>
-
-                                <!-- 🌟 新增：神諭區塊 (綠色文字) 🌟 -->
+                                
+                                <!-- 🌟 新增：神諭區塊 (綠色) 🌟 -->
                                 ${card.oracle ? `
-                                <div class="mt-4 p-4 bg-green-50 rounded-xl border border-green-100">
-                                    <h5 class="text-green-800 font-bold mb-2 serif-text flex items-center gap-2">
-                                        <span class="text-lg">🌿</span> 神諭指引：
+                                <div class="mt-4 p-5 bg-green-50 rounded-xl border border-green-200 shadow-sm">
+                                    <h5 class="text-green-800 font-bold mb-3 serif-text flex items-center gap-2 text-lg">
+                                        <span>🌿</span> 神明諭示
                                     </h5>
-                                    <p class="text-green-700 leading-relaxed">${parsedOracle}</p>
+                                    <p class="text-green-700 leading-relaxed text-justify">${parsedOracle}</p>
                                 </div>
                                 ` : ''}
                             </div>
@@ -1094,7 +1100,6 @@
                 container.innerHTML += html;
             });
         }
-        
         window.addEventListener('load', initApp);
 
     </script>
