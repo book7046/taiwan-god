@@ -19,7 +19,7 @@
 
     <!-- ✅ 牌卡資料庫 ✅ -->
     <script>
-        // 🌟 可以在此處修改每一張牌的內容與解說！ 🌟
+        // 🌟 可以在此處修改每一張牌的內容、解說與神諭！ 🌟
         const GOD_CARDS_DATA = [
             {
                 id: 1,
@@ -573,7 +573,7 @@
     <div class="main-wrapper flex-1 relative flex flex-col">
         <main class="flex-1 p-4 pb-20 w-full max-w-5xl mx-auto">
             
-            <!-- 1. 首頁與使用說明 -->
+            <!-- ==================== 1. 首頁與使用說明 ==================== -->
             <div id="viewIntro" class="max-w-2xl mx-auto mt-6 fade-in">
                 <div class="bg-white rounded-2xl shadow-xl border border-red-100 overflow-hidden">
                     <div class="bg-red-900 text-center py-8 px-4 relative overflow-hidden">
@@ -583,6 +583,7 @@
                     </div>
                     
                     <div class="p-6 md:p-8 space-y-8">
+                        <!-- 回復為原本的玩法介紹與注意事項 -->
                         <section>
                             <h2 class="text-xl font-bold text-red-900 mb-3 border-l-4 border-yellow-500 pl-3 serif-text">📜 玩法介紹</h2>
                             <ul class="list-disc list-inside text-gray-700 space-y-2 leading-relaxed">
@@ -610,61 +611,17 @@
                             </div>
                         </section>
 
-                        <button onclick="goToAsk()" class="w-full py-4 bg-gradient-to-r from-red-800 to-red-600 text-yellow-300 rounded-xl font-bold text-lg hover:from-red-900 hover:to-red-700 transition-all shadow-lg transform hover:-translate-y-1 border border-red-500 serif-text tracking-wider">
-                            我了解了，開始占卜
+                        <!-- 修改：改為前往敲擊頁面 -->
+                        <button onclick="goToKnock()" class="w-full py-4 bg-gradient-to-r from-red-800 to-red-600 text-yellow-300 rounded-xl font-bold text-lg hover:from-red-900 hover:to-red-700 transition-all shadow-lg transform hover:-translate-y-1 border border-red-500 serif-text tracking-wider">
+                            我了解了，準備喚醒牌卡
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- 2. 輸入問題與牌陣選擇 -->
-            <div id="viewAsk" class="max-w-xl mx-auto mt-10 hidden fade-in">
-                <div class="text-center mb-8">
-                    <h2 class="text-3xl font-bold text-red-900 mb-3 serif-text">向好神卡提問</h2>
-                    <p class="text-gray-600">請像與朋友聊天般，輸入您的名字與想問的問題</p>
-                </div>
-
-                <div class="bg-white p-6 rounded-2xl shadow-md border border-red-100 mb-6">
-                    <div class="mb-5">
-                        <label class="block text-sm font-bold text-gray-700 mb-2">您的稱呼</label>
-                        <input type="text" id="inputName" placeholder="例如：王小明" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-50">
-                    </div>
-                    
-                    <div class="mb-2">
-                        <label class="block text-sm font-bold text-gray-700 mb-2">您想問的問題</label>
-                        <textarea id="inputQuestion" rows="4" placeholder="例如：我和對方未來感情發展..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-50 resize-none"></textarea>
-                    </div>
-                    
-                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 mt-4">
-                        <p class="text-xs text-blue-800 font-bold mb-1">💡 您可以這樣在心中默念：</p>
-                        <p class="text-sm text-blue-900 font-medium" id="previewDialogue">「好神卡，我是ＯＯＯ，我今天想問ＯＯＯ，請你能給我方向。」</p>
-                    </div>
-                </div>
-
-                <div class="bg-white p-6 rounded-2xl shadow-md border border-red-100 mb-8">
-                    <h3 class="font-bold text-gray-800 mb-4 text-center">請選擇抽牌方式</h3>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="spread-option border-2 border-red-200 rounded-xl p-4 text-center cursor-pointer hover:bg-red-50 transition-colors" data-spread="single" onclick="selectSpread('single', this)">
-                            <div class="text-3xl mb-2">🎴</div>
-                            <div class="font-bold text-red-900">單張解釋</div>
-                            <div class="text-xs text-gray-500 mt-1">抽取 1 張牌</div>
-                        </div>
-                        <div class="spread-option border-2 border-yellow-400 bg-yellow-50 rounded-xl p-4 text-center cursor-pointer transition-colors" data-spread="timeflow" onclick="selectSpread('timeflow', this)">
-                            <div class="text-3xl mb-2">⏳</div>
-                            <div class="font-bold text-red-900">時間之流</div>
-                            <div class="text-xs text-gray-500 mt-1">抽取 3 張牌 (過去/現在/未來)</div>
-                        </div>
-                    </div>
-                </div>
-
-                <button onclick="goToKnock()" class="w-full py-4 bg-gradient-to-r from-red-800 to-red-600 text-yellow-300 rounded-xl font-bold text-lg hover:from-red-900 hover:to-red-700 transition-all shadow-lg transform hover:-translate-y-1 border border-red-500 serif-text">
-                    確認問題，準備喚醒牌卡
-                </button>
-            </div>
-
-            <!-- 3. 敲擊喚醒儀式 -->
+            <!-- ==================== 2. 敲擊喚醒儀式 (流程提前) ==================== -->
             <div id="viewKnock" class="max-w-md mx-auto mt-16 text-center hidden fade-in">
-                <h2 class="text-3xl font-bold text-red-900 mb-4 serif-text">喚醒好神卡</h2>
+                <h2 class="text-3xl font-bold text-red-900 mb-4 serif-text">第一步：喚醒好神卡</h2>
                 <p class="text-gray-600 mb-12 px-4 leading-relaxed">
                     當你的心中出現問題，或遇到問題卡關時，請靜下心來<br>
                     <strong class="text-red-700">敲兩下牌卡</strong>，喚醒你的好神卡！
@@ -690,23 +647,78 @@
                 </div>
             </div>
 
-            <!-- 4. 扇形抽牌區 -->
+            <!-- ==================== 3. 輸入問題與牌陣選擇 ==================== -->
+            <div id="viewAsk" class="max-w-xl mx-auto mt-10 hidden fade-in">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-red-900 mb-3 serif-text">第二步：向好神卡提問</h2>
+                    <p class="text-gray-600">請像與朋友聊天般，輸入您的個人資料與想問的問題</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-md border border-red-100 mb-6">
+                    <div class="mb-5">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">您的稱呼</label>
+                        <input type="text" id="inputName" placeholder="例如：王小明" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-50">
+                    </div>
+
+                    <!-- 新增：出生年月日欄位 -->
+                    <div class="mb-5">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">出生年月日</label>
+                        <input type="text" id="inputBirthday" placeholder="例如：民國80年1月1日 或 1991/1/1" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-50">
+                    </div>
+                    
+                    <div class="mb-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">您想問的問題</label>
+                        <textarea id="inputQuestion" rows="4" placeholder="例如：我和對方未來感情發展..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-50 resize-none"></textarea>
+                    </div>
+                    
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 mt-4">
+                        <p class="text-xs text-blue-800 font-bold mb-1">💡 您可以這樣在心中默念：</p>
+                        <p class="text-sm text-blue-900 font-medium" id="previewDialogue">「好神卡，我是ＯＯＯ，出生於ＯＯＯ，我今天想問ＯＯＯ，請你能給我方向。」</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-md border border-red-100 mb-8">
+                    <h3 class="font-bold text-gray-800 mb-4 text-center">請選擇抽牌方式</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="spread-option border-2 border-red-200 rounded-xl p-4 text-center cursor-pointer hover:bg-red-50 transition-colors" data-spread="single" onclick="selectSpread('single', this)">
+                            <div class="text-3xl mb-2">🎴</div>
+                            <div class="font-bold text-red-900">單張解釋</div>
+                            <div class="text-xs text-gray-500 mt-1">抽取 1 張牌</div>
+                        </div>
+                        <div class="spread-option border-2 border-yellow-400 bg-yellow-50 rounded-xl p-4 text-center cursor-pointer transition-colors" data-spread="timeflow" onclick="selectSpread('timeflow', this)">
+                            <div class="text-3xl mb-2">⏳</div>
+                            <div class="font-bold text-red-900">時間之流</div>
+                            <div class="text-xs text-gray-500 mt-1">抽取 3 張牌 (過去/現在/未來)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 修改：改為前往洗牌抽牌頁面 -->
+                <button onclick="goToDraw()" class="w-full py-4 bg-gradient-to-r from-red-800 to-red-600 text-yellow-300 rounded-xl font-bold text-lg hover:from-red-900 hover:to-red-700 transition-all shadow-lg transform hover:-translate-y-1 border border-red-500 serif-text">
+                    確認問題，開始洗牌抽牌
+                </button>
+            </div>
+
+            <!-- ==================== 4. 扇形抽牌區 ==================== -->
             <div id="viewDraw" class="max-w-4xl mx-auto mt-10 hidden fade-in">
                 <div class="text-center mb-6">
-                    <h2 class="text-2xl font-bold text-red-900 mb-2 serif-text">隨意抽牌</h2>
+                    <h2 class="text-2xl font-bold text-red-900 mb-2 serif-text">第三步：隨意抽牌</h2>
                     <p class="text-gray-600 font-medium" id="drawInstruction">請憑直覺抽出 X 張牌 (已選 0 張)</p>
                 </div>
                 
                 <div class="fan-container" id="cardDeckContainer"></div>
             </div>
 
-            <!-- 5. 占卜結果 -->
+            <!-- ==================== 5. 占卜結果 ==================== -->
             <div id="viewResult" class="max-w-5xl mx-auto mt-8 hidden fade-in pb-10">
                 
                 <div class="text-center mb-10 border-b border-gray-200 pb-8">
                     <h2 class="text-3xl font-bold text-red-900 mb-6 serif-text tracking-wide">占卜結果</h2>
                     <div class="bg-white p-6 rounded-2xl shadow-sm inline-block max-w-2xl w-full border border-gray-100 text-left">
-                        <p class="text-gray-500 text-sm mb-1">提問人：<span id="resName" class="font-bold text-gray-800"></span></p>
+                        <p class="text-gray-500 text-sm mb-1">
+                            提問人：<span id="resName" class="font-bold text-gray-800"></span>
+                            <span class="text-xs ml-2 text-gray-400">(生日: <span id="resBirthday"></span>)</span>
+                        </p>
                         <p class="text-gray-500 text-sm mb-2">牌陣：<span id="resSpread" class="font-bold text-gray-800"></span></p>
                         <div class="bg-red-50 p-4 rounded-lg mt-3">
                             <p class="text-red-900 font-medium italic leading-relaxed">「<span id="resQuestion"></span>」</p>
@@ -716,6 +728,7 @@
 
                 <div class="mb-6 text-center text-red-600 text-sm animate-pulse font-bold">↓↓ 請點擊下方卡片翻開，並查看解說 ↓↓</div>
                 
+                <!-- 主牌翻牌區 -->
                 <div id="resultSingle" class="hidden flex justify-center mb-12">
                     <div class="w-full max-w-[260px]">
                         <div class="text-center font-bold text-red-800 mb-3 bg-red-100 rounded-full py-1 border border-red-200 shadow-sm">神明指引</div>
@@ -723,9 +736,7 @@
                             <div class="flip-box-inner">
                                 <div class="flip-box-front overflow-hidden">
                                     <img src="assets/images/back.jpg" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                    <div class="hidden flex-col items-center justify-center h-full p-4">
-                                        <div class="text-yellow-400 text-4xl mb-2">🙏</div>
-                                    </div>
+                                    <div class="hidden flex-col items-center justify-center h-full p-4"><div class="text-yellow-400 text-4xl mb-2">🙏</div></div>
                                 </div>
                                 <div class="flip-box-back" id="cardFront_0"></div>
                             </div>
@@ -772,32 +783,32 @@
                     </div>
                 </div>
 
+                <!-- 輔助牌翻牌區 (預設隱藏，點擊按鈕後顯示) -->
+                <div id="auxCardsFlipContainer" class="flex justify-center flex-wrap gap-8 max-w-4xl mx-auto mb-12 px-4 hidden"></div>
+
+                <!-- 解說區塊 -->
                 <div id="explanationArea" class="max-w-4xl mx-auto space-y-6 opacity-0 transition-opacity duration-1000 px-4 mt-12 hidden">
                     <div class="flex items-center justify-center gap-4 mb-8 border-b-2 border-red-200 pb-4">
                         <div class="w-12 h-1 bg-red-800 rounded"></div>
                         <h3 class="text-2xl font-bold text-center text-red-900 serif-text tracking-widest">詳細解說</h3>
                         <div class="w-12 h-1 bg-red-800 rounded"></div>
                     </div>
+                    <!-- 主牌解說 -->
                     <div id="explanationContent" class="space-y-8"></div>
+                    <!-- 輔助牌解說 -->
+                    <div id="auxExplanationContent" class="space-y-8 mt-8"></div>
                 </div>
                 
-                <!-- 🌟 新增：輔助牌顯示區與控制按鈕 🌟 -->
-                <div id="auxiliaryArea" class="max-w-4xl mx-auto mt-12 px-4 hidden">
-                    <div id="auxiliaryCardsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                        <!-- 動態插入輔助牌的翻牌 UI -->
-                    </div>
-                    
-                    <div class="text-center">
-                        <button id="drawAuxiliaryBtn" onclick="drawAuxiliaryCard()" class="px-8 py-3 bg-white text-red-700 border-2 border-red-700 rounded-full font-bold text-lg hover:bg-red-50 transition-all shadow-md transform hover:-translate-y-1 mb-4 hidden">
-                            再抽一張輔助牌 (<span id="auxCount">0</span>/2)
+                <!-- 底部操作按鈕區 (包含抽取輔助牌) -->
+                <div id="actionArea" class="mt-16 text-center opacity-0 transition-opacity duration-1000 hidden space-y-4">
+                    <div class="flex flex-col md:flex-row justify-center items-center gap-4">
+                        <button id="drawAuxBtn" onclick="drawAuxiliaryCard()" class="px-8 py-4 bg-white border-2 border-green-600 text-green-700 rounded-full font-bold text-lg hover:bg-green-50 transition-all shadow-md">
+                            💡 抽取輔助牌 (最多2張)
+                        </button>
+                        <button onclick="resetApp()" class="px-10 py-4 bg-gradient-to-r from-red-900 to-red-700 text-yellow-300 rounded-full font-bold text-lg hover:from-red-800 hover:to-red-600 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1">
+                            感謝指引，完成占卜
                         </button>
                     </div>
-                </div>
-
-                <div id="restartArea" class="mt-16 text-center opacity-0 transition-opacity duration-1000 hidden">
-                    <button onclick="resetApp()" class="px-10 py-4 bg-gradient-to-r from-red-900 to-red-700 text-yellow-300 rounded-full font-bold text-lg hover:from-red-800 hover:to-red-600 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1">
-                        感謝指引，完成占卜
-                    </button>
                 </div>
 
             </div>
@@ -808,17 +819,14 @@
     <script>
         let cardsData = [];
         let userName = "";
+        let userBirthday = "";
         let userQuestion = "";
         let selectedSpreadType = "timeflow"; 
         let cardsToDrawCount = 3;
         let drawnCards = [];
+        let drawnAuxCards = []; 
         let knockCount = 0;
         let flippedCount = 0;
-        
-        // 🌟 新增：輔助牌相關狀態 🌟
-        let auxiliaryCards = [];
-        const MAX_AUXILIARY = 2;
-        
         const TOTAL_CARDS = 44;
 
         // 產生缺圖時的防呆提示圖片 (比例 8:12)
@@ -839,7 +847,7 @@
                     keyword: '誠心 祈求 <r>順其自然</r>',
                     poem: '天理昭昭不可欺\n順其自然莫強求\n誠心祈禱必有應\n靜待時機好運來',
                     desc: `這是第 ${i} 張好神卡的預設解說。\n\n神明提醒您，在面對目前的狀況時，保持平靜的心態是非常重要的。<r>順其自然</r>，盡人事聽天命，一切都會往好的方向發展。`,
-                    oracle: '' // 預設為空
+                    oracle: '' 
                 });
             }
             return data.map(card => ({
@@ -858,17 +866,19 @@
         function initApp() {
             cardsData = getFullCardsData();
             document.getElementById('inputName').addEventListener('input', updatePreview);
+            document.getElementById('inputBirthday').addEventListener('input', updatePreview);
             document.getElementById('inputQuestion').addEventListener('input', updatePreview);
         }
 
         function updatePreview() {
             const name = document.getElementById('inputName').value.trim() || 'ＯＯＯ';
+            const birthday = document.getElementById('inputBirthday').value.trim() || 'ＯＯＯ';
             const q = document.getElementById('inputQuestion').value.trim() || 'ＯＯＯ';
-            document.getElementById('previewDialogue').textContent = `「好神卡，我是${name}，我今天想問${q}，請你能給我方向。」`;
+            document.getElementById('previewDialogue').textContent = `「好神卡，我是${name}，出生於${birthday}，我今天想問${q}，請你能給我方向。」`;
         }
 
         function hideAllViews() {
-            ['viewIntro', 'viewAsk', 'viewKnock', 'viewDraw', 'viewResult', 'explanationArea', 'restartArea'].forEach(id => {
+            ['viewIntro', 'viewAsk', 'viewKnock', 'viewDraw', 'viewResult', 'explanationArea', 'actionArea'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
             });
             window.scrollTo(0, 0);
@@ -876,19 +886,15 @@
 
         function resetApp() {
             userName = "";
+            userBirthday = "";
             userQuestion = "";
             drawnCards = [];
+            drawnAuxCards = [];
             knockCount = 0;
             flippedCount = 0;
             
-            // 🌟 重置輔助牌狀態 🌟
-            auxiliaryCards = [];
-            document.getElementById('auxiliaryCardsContainer').innerHTML = '';
-            document.getElementById('auxCount').textContent = '0';
-            document.getElementById('drawAuxiliaryBtn').classList.add('hidden');
-            document.getElementById('auxiliaryArea').classList.add('hidden');
-            
             document.getElementById('inputName').value = "";
+            document.getElementById('inputBirthday').value = "";
             document.getElementById('inputQuestion').value = "";
             updatePreview();
             
@@ -900,41 +906,26 @@
             document.getElementById('knockDeck').classList.remove('glow-effect');
             
             document.getElementById('explanationArea').style.opacity = '0';
-            document.getElementById('restartArea').style.opacity = '0';
+            document.getElementById('actionArea').style.opacity = '0';
             
             document.querySelectorAll('.flip-box').forEach(box => box.classList.remove('flipped'));
+            
+            // 清空輔助牌區塊
+            document.getElementById('auxCardsFlipContainer').innerHTML = '';
+            document.getElementById('auxCardsFlipContainer').classList.add('hidden');
+            document.getElementById('auxExplanationContent').innerHTML = '';
+            
+            // 重置按鈕狀態
+            const auxBtn = document.getElementById('drawAuxBtn');
+            auxBtn.classList.remove('hidden');
+            auxBtn.innerHTML = '💡 抽取輔助牌 (最多2張)';
 
             hideAllViews();
             document.getElementById('viewIntro').classList.remove('hidden');
         }
 
-        function goToAsk() {
-            hideAllViews();
-            document.getElementById('viewAsk').classList.remove('hidden');
-        }
-
-        function selectSpread(type, element) {
-            selectedSpreadType = type;
-            cardsToDrawCount = type === 'single' ? 1 : 3;
-            
-            document.querySelectorAll('.spread-option').forEach(el => {
-                el.classList.remove('border-yellow-400', 'bg-yellow-50');
-                el.classList.add('border-red-200');
-            });
-            element.classList.remove('border-red-200');
-            element.classList.add('border-yellow-400', 'bg-yellow-50');
-        }
-
+        // 修改：首頁按下按鈕後前往「敲擊喚醒」
         function goToKnock() {
-            userName = document.getElementById('inputName').value.trim() || '信士/信女';
-            userQuestion = document.getElementById('inputQuestion').value.trim();
-            
-            if (!userQuestion) {
-                alert('請在心中默念或輸入您的問題，好神卡才能給予明確指引喔！');
-                document.getElementById('inputQuestion').focus();
-                return;
-            }
-
             hideAllViews();
             document.getElementById('viewKnock').classList.remove('hidden');
         }
@@ -952,20 +943,50 @@
 
             if (knockCount === 2) {
                 document.getElementById('knockHint').classList.add('hidden');
-                document.getElementById('knockText').textContent = "好神卡已喚醒！準備洗牌...";
+                document.getElementById('knockText').textContent = "好神卡已喚醒！準備輸入問題...";
                 document.getElementById('knockText').classList.add('bg-yellow-100', 'text-yellow-800');
                 deck.classList.add('glow-effect');
                 
-                setTimeout(goToDraw, 1500);
+                // 修改：敲擊完成後前往「輸入問題頁面」
+                setTimeout(goToAsk, 1500);
             }
         }
 
+        // 修改：新增的 goToAsk 函式
+        function goToAsk() {
+            hideAllViews();
+            document.getElementById('viewAsk').classList.remove('hidden');
+        }
+
+        function selectSpread(type, element) {
+            selectedSpreadType = type;
+            cardsToDrawCount = type === 'single' ? 1 : 3;
+            
+            document.querySelectorAll('.spread-option').forEach(el => {
+                el.classList.remove('border-yellow-400', 'bg-yellow-50');
+                el.classList.add('border-red-200');
+            });
+            element.classList.remove('border-red-200');
+            element.classList.add('border-yellow-400', 'bg-yellow-50');
+        }
+
+        // 修改：在輸入問題頁面點擊確認後，抓取資料並進行「洗牌與抽牌」
         function goToDraw() {
+            userName = document.getElementById('inputName').value.trim() || '信士/信女';
+            userBirthday = document.getElementById('inputBirthday').value.trim() || '未提供';
+            userQuestion = document.getElementById('inputQuestion').value.trim();
+            
+            if (!userQuestion) {
+                alert('請在心中默念或輸入您的問題，好神卡才能給予明確指引喔！');
+                document.getElementById('inputQuestion').focus();
+                return;
+            }
+
             hideAllViews();
             updateDrawInstruction();
             document.getElementById('viewDraw').classList.remove('hidden');
             
-            // 🌟 專業洗牌演算法 (Fisher-Yates Shuffle)，確保絕對隨機且無偏差 🌟
+            // 🌟 專業洗牌演算法 (Fisher-Yates Shuffle) 🌟
             for (let i = cardsData.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [cardsData[i], cardsData[j]] = [cardsData[j], cardsData[i]];
@@ -1028,6 +1049,7 @@
             flippedCount = 0;
             
             document.getElementById('resName').textContent = userName;
+            document.getElementById('resBirthday').textContent = userBirthday;
             document.getElementById('resSpread').textContent = selectedSpreadType === 'single' ? '單張解釋' : '時間之流 (過去/現在/未來)';
             document.getElementById('resQuestion').textContent = userQuestion;
 
@@ -1061,110 +1083,118 @@
                 flippedCount++;
                 
                 if (flippedCount === cardsToDrawCount) {
-                    renderExplanations();
+                    renderInitialExplanations();
                     setTimeout(() => {
                         document.getElementById('explanationArea').classList.remove('hidden');
-                        document.getElementById('restartArea').classList.remove('hidden');
-                        
-                        // 🌟 顯示輔助牌區域與按鈕 🌟
-                        document.getElementById('auxiliaryArea').classList.remove('hidden');
-                        document.getElementById('drawAuxiliaryBtn').classList.remove('hidden');
-
+                        document.getElementById('actionArea').classList.remove('hidden');
                         requestAnimationFrame(() => {
                             document.getElementById('explanationArea').style.opacity = '1';
-                            document.getElementById('restartArea').style.opacity = '1';
+                            document.getElementById('actionArea').style.opacity = '1';
                         });
                     }, 800);
                 }
             }
         }
 
-        // 🌟 新增：抽取輔助牌邏輯 🌟
+        // ================= 輔助牌邏輯 =================
         function drawAuxiliaryCard() {
-            if (auxiliaryCards.length >= MAX_AUXILIARY) return;
+            if (drawnAuxCards.length >= 2) return;
 
-            // 1. 準備剩下的牌庫 (過濾掉已抽到的主牌和輔助牌)
-            const drawnIds = [...drawnCards, ...auxiliaryCards].map(c => c.id);
-            let remainingDeck = cardsData.filter(card => !drawnIds.includes(card.id));
-
-            // 2. 進行專業洗牌 (Fisher-Yates Shuffle)
-            for (let i = remainingDeck.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [remainingDeck[i], remainingDeck[j]] = [remainingDeck[j], remainingDeck[i]];
-            }
-
-            // 3. 抽出一張牌
-            const newAuxCard = remainingDeck[0];
-            auxiliaryCards.push(newAuxCard);
-
-            // 4. 更新 UI 與計數
-            document.getElementById('auxCount').textContent = auxiliaryCards.length;
+            // 1. 篩選出還沒被抽過的牌
+            let availableCards = cardsData.filter(c => !drawnCards.includes(c) && !drawnAuxCards.includes(c));
             
-            if (auxiliaryCards.length >= MAX_AUXILIARY) {
-                document.getElementById('drawAuxiliaryBtn').classList.add('hidden');
+            // 2. 針對剩餘的牌進行專業洗牌
+            for (let i = availableCards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [availableCards[i], availableCards[j]] = [availableCards[j], availableCards[i]];
             }
+            
+            // 3. 抽出一張並加入已抽紀錄
+            const auxCard = availableCards[0];
+            drawnAuxCards.push(auxCard);
 
-            // 5. 渲染新的輔助牌 UI
-            renderAuxiliaryCardUI(newAuxCard, auxiliaryCards.length);
-        }
+            const auxIndex = drawnAuxCards.length;
+            const posName = auxIndex === 1 ? '輔助牌一' : '輔助牌二';
 
-        // 🌟 新增：渲染單張輔助牌 UI (包含翻牌特效與解說) 🌟
-        function renderAuxiliaryCardUI(card, index) {
-            const container = document.getElementById('auxiliaryCardsContainer');
-            const auxId = `auxCard_${index}`;
-            const positionName = index === 1 ? '輔助牌一' : '輔助牌二';
+            // 4. 在 UI 產生新的翻牌元素
+            const container = document.getElementById('auxCardsFlipContainer');
+            container.classList.remove('hidden');
 
-            // 產生翻牌 UI
+            const fallbackUrl = getFallbackImage(`找不到\\nfront_${auxCard.id}.jpg`);
             const flipBoxHTML = `
-                <div class="w-full max-w-[260px] mx-auto fade-in">
-                    <div class="text-center font-bold text-teal-800 mb-3 bg-teal-100 rounded-full py-1 border border-teal-200 shadow-sm">
-                        ${positionName}
-                    </div>
-                    <div class="flip-box" onclick="flipAuxiliaryCard(this, ${card.id})">
+                <div class="w-full max-w-[200px] fade-in mt-4">
+                    <div class="text-center font-bold text-green-800 mb-3 bg-green-100 rounded-full py-1 border border-green-200 shadow-sm">${posName}</div>
+                    <div class="flip-box" onclick="flipAuxCard(this, ${auxCard.id}, '${posName}')">
                         <div class="flip-box-inner glow-effect rounded-lg">
                             <div class="flip-box-front overflow-hidden">
                                 <img src="assets/images/back.jpg" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                 <div class="hidden flex-col items-center justify-center h-full p-4"><div class="text-yellow-400 text-4xl">🙏</div></div>
                             </div>
-                            <div class="flip-box-back" id="front_${auxId}">
-                                <img src="${card.frontImage}" class="w-full h-full object-cover rounded" onerror="this.onerror=null; this.src='${getFallbackImage(`找不到\\nfront_${card.id}.jpg`)}'">
+                            <div class="flip-box-back">
+                                <img src="${auxCard.frontImage}" class="w-full h-full object-cover rounded" onerror="this.onerror=null; this.src='${fallbackUrl}'">
                             </div>
                         </div>
                     </div>
-                    <div class="text-center mt-3 text-teal-600 text-sm animate-pulse font-bold">點擊翻開解說</div>
                 </div>
             `;
-            
             container.insertAdjacentHTML('beforeend', flipBoxHTML);
-            
-            // 捲動到新抽的牌
-            container.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // 5. 更新按鈕狀態
+            const btn = document.getElementById('drawAuxBtn');
+            if (drawnAuxCards.length >= 2) {
+                btn.classList.add('hidden'); // 抽滿兩張就隱藏
+            } else {
+                btn.innerHTML = '💡 再抽一張輔助牌 (剩1張)';
+            }
         }
 
-        // 🌟 新增：翻開輔助牌並動態加入解說 🌟
-        function flipAuxiliaryCard(element, cardId) {
-            if (element.classList.contains('flipped')) return;
-            
-            element.classList.add('flipped');
-            
-            // 隱藏「點擊翻開解說」提示
-            if(element.nextElementSibling) {
-                 element.nextElementSibling.style.display = 'none';
-            }
+        // 翻開輔助牌時觸發
+        function flipAuxCard(element, cardId, posName) {
+            if (!element.classList.contains('flipped')) {
+                element.classList.add('flipped');
+                element.querySelector('.flip-box-inner').classList.remove('glow-effect');
 
-            const card = cardsData.find(c => c.id === cardId);
-            const index = auxiliaryCards.findIndex(c => c.id === cardId) + 1;
-            const positionName = index === 1 ? '輔助牌一' : '輔助牌二';
+                const card = cardsData.find(c => c.id === cardId);
+                
+                setTimeout(() => {
+                    renderSingleExplanation(card, posName, 'auxExplanationContent');
+                }, 800);
+            }
+        }
+
+        // ================= 渲染解說邏輯 =================
+        function renderInitialExplanations() {
+            const container = document.getElementById('explanationContent');
+            container.innerHTML = '';
             
+            const positionNames = selectedSpreadType === 'single' ? ['神明指引'] : ['過去', '現在', '未來發展'];
+
+            drawnCards.forEach((card, index) => {
+                renderSingleExplanation(card, positionNames[index], 'explanationContent');
+            });
+        }
+
+        // 獨立出的單一解說渲染模組 (支援主牌與輔助牌不同的顏色樣式)
+        function renderSingleExplanation(card, positionName, containerId) {
+            const container = document.getElementById(containerId);
             const parsedKeyword = parseRedText(card.keyword);
             const parsedDesc = parseRedText(card.desc);
             const parsedOracle = card.oracle ? parseRedText(card.oracle) : "";
 
+            // 判斷是否為輔助牌，若是則套用綠色主題，否則為紅色主題
+            const isAux = positionName.includes('輔助');
+            const badgeClass = isAux ? 'bg-green-800 text-green-100' : 'bg-red-800 text-yellow-300';
+            const headerBg = isAux ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100';
+            const godColor = isAux ? 'text-green-900' : 'text-red-900';
+            const borderClass = isAux ? 'border-green-200' : 'border-red-100';
+            const hrColor = isAux ? 'bg-green-500' : 'bg-yellow-400';
+            const titleColor = isAux ? 'text-green-900' : 'text-red-900';
+
             const html = `
-                <div class="bg-white rounded-2xl shadow-md border border-teal-100 overflow-hidden fade-in mt-6">
-                    <div class="bg-teal-50 px-5 py-3 border-b border-teal-100 flex items-center gap-3">
-                        <span class="bg-teal-700 text-white px-3 py-1 rounded-full text-xs font-bold tracking-widest">${positionName}</span>
-                        <span class="text-sm font-bold text-teal-900">${card.god}</span>
+                <div class="bg-white rounded-2xl shadow-md border ${borderClass} overflow-hidden fade-in mt-6">
+                    <div class="${headerBg} px-5 py-3 border-b flex items-center gap-3">
+                        <span class="${badgeClass} px-3 py-1 rounded-full text-xs font-bold tracking-widest">${positionName}</span>
+                        <span class="text-sm font-bold ${godColor}">${card.god}</span>
                     </div>
                     <div class="p-5 md:p-8 flex flex-col md:flex-row gap-6 md:gap-10">
                         
@@ -1178,8 +1208,8 @@
 
                         <div class="md:w-2/3">
                             <div class="flex items-center gap-2 mb-4">
-                                <div class="w-1 h-5 bg-teal-500 rounded"></div>
-                                <h5 class="text-lg font-bold text-teal-900 serif-text">補充解析</h5>
+                                <div class="w-1 h-5 ${hrColor} rounded"></div>
+                                <h5 class="text-lg font-bold ${titleColor} serif-text">白話文解析</h5>
                             </div>
                             <p class="text-gray-700 leading-relaxed whitespace-pre-line text-justify mb-6">${parsedDesc}</p>
                             
@@ -1195,64 +1225,9 @@
                     </div>
                 </div>
             `;
-            
-            setTimeout(() => {
-                document.getElementById('explanationContent').insertAdjacentHTML('beforeend', html);
-                document.getElementById('explanationContent').lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 600);
+            container.insertAdjacentHTML('beforeend', html);
         }
 
-        function renderExplanations() {
-            const container = document.getElementById('explanationContent');
-            container.innerHTML = '';
-            
-            const positionNames = selectedSpreadType === 'single' ? ['神明指引'] : ['過去', '現在', '未來發展'];
-
-            drawnCards.forEach((card, index) => {
-                const parsedKeyword = parseRedText(card.keyword);
-                const parsedDesc = parseRedText(card.desc);
-                // 處理神諭文字 (若神諭中也需要紅字支援)
-                const parsedOracle = card.oracle ? parseRedText(card.oracle) : "";
-
-                const html = `
-                    <div class="bg-white rounded-2xl shadow-md border border-red-100 overflow-hidden">
-                        <div class="bg-red-50 px-5 py-3 border-b border-red-100 flex items-center gap-3">
-                            <span class="bg-red-800 text-yellow-300 px-3 py-1 rounded-full text-xs font-bold tracking-widest">${positionNames[index]}</span>
-                            <span class="text-sm font-bold text-red-900">${card.god}</span>
-                        </div>
-                        <div class="p-5 md:p-8 flex flex-col md:flex-row gap-6 md:gap-10">
-                            
-                            <div class="md:w-1/3 shrink-0 flex flex-col items-center md:items-start text-center md:text-left border-b md:border-b-0 md:border-r border-gray-100 pb-6 md:pb-0 md:pr-6">
-                                <h4 class="text-2xl font-bold text-gray-800 mb-2 serif-text">${card.name}</h4>
-                                <p class="text-sm text-red-600 font-bold bg-red-100 px-3 py-1 rounded-full mb-5 inline-block border border-red-100">${parsedKeyword}</p>
-                                <div class="bg-gray-50 p-4 rounded-xl w-full border border-gray-100">
-                                    <p class="text-red-700 font-medium leading-loose tracking-widest whitespace-pre-line serif-text text-lg">${card.poem}</p>
-                                </div>
-                            </div>
-
-                            <div class="md:w-2/3">
-                                <div class="flex items-center gap-2 mb-4">
-                                    <div class="w-1 h-5 bg-yellow-400 rounded"></div>
-                                    <h5 class="text-lg font-bold text-red-900 serif-text">白話文解析</h5>
-                                </div>
-                                <p class="text-gray-700 leading-relaxed whitespace-pre-line text-justify mb-6">${parsedDesc}</p>
-                                
-                                <!-- 🌟 新增：神諭區塊 (綠色) 🌟 -->
-                                ${card.oracle ? `
-                                <div class="mt-4 p-5 bg-green-50 rounded-xl border border-green-200 shadow-sm">
-                                    <h5 class="text-green-800 font-bold mb-3 serif-text flex items-center gap-2 text-lg">
-                                        <span>🌿</span> 神明諭示
-                                    </h5>
-                                    <p class="text-green-700 leading-relaxed text-justify">${parsedOracle}</p>
-                                </div>
-                                ` : ''}
-                            </div>
-                        </div>
-                    </div>
-                `;
-                container.innerHTML += html;
-            });
-        }
         window.addEventListener('load', initApp);
 
     </script>
